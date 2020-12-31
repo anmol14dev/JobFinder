@@ -3,9 +3,13 @@ package com.example.jobfinder.Activity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -24,6 +28,9 @@ import com.example.jobfinder.Interface.JobApi;
 import com.example.jobfinder.Model.Job;
 import com.example.jobfinder.R;
 import com.example.jobfinder.Utilities.LoadingDialogue;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -38,7 +45,7 @@ public class HostActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private EditText searchBar;
     private ImageView searchButton;
-    private String keyword="";
+    private String keyword = "";
     private LoadingDialogue loadingDialog;
     public ArrayList<Job> jobs;
     private JobClient client;
@@ -51,28 +58,33 @@ public class HostActivity extends AppCompatActivity {
     private Fragment defaultFragment;
     private TextView title;
     public HashSet<Job> jobsList;
+    public Location userLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_host);
         loadingDialog = new LoadingDialogue(HostActivity.this);
-        client= new JobClient();
-        jobService=client.getService();
-        toolbar=findViewById(R.id.toolbar);
-        fragmentManager=getSupportFragmentManager();
-        jobsFragment=new JobsFragment();
+        client = new JobClient();
+        jobService = client.getService();
+        toolbar = findViewById(R.id.toolbar);
+        fragmentManager = getSupportFragmentManager();
+
+        jobsFragment = new JobsFragment();
         setSupportActionBar(toolbar);
         init();
         searchJobs("");
 //
     }
-    public void init(){
-        searchBar=findViewById(R.id.search_keyword);
-        searchButton=findViewById(R.id.search_button);
-        bottomNavigationView=findViewById(R.id.bottom_navigation);
-        title=findViewById(R.id.title);
+
+    public void init() {
+        searchBar = findViewById(R.id.search_keyword);
+        searchButton = findViewById(R.id.search_button);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        title = findViewById(R.id.title);
         setClickListners();
     }
+
     private void setClickListners() {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,24 +95,25 @@ public class HostActivity extends AppCompatActivity {
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-               switch (item.getItemId()){
-                   case R.id.location:
-                       defaultFragment=new MapFragment();
-                       title.setText("Location");
-                       break;
-                   case R.id.jobs:
-                       defaultFragment=jobsFragment;
-                       title.setText("Jobs");
-                       break;
-                   case R.id.list:
-                       defaultFragment=new SelectedJobListFragment(jobsList);
-                       title.setText("List");
-                       break;
-               }
-               fragmentManager.beginTransaction().replace(R.id.frame,defaultFragment,null).commit();
-               return true;
+                switch (item.getItemId()) {
+                    case R.id.location:
+                        defaultFragment = new MapFragment();
+                        title.setText("Location");
+                        break;
+                    case R.id.jobs:
+                        defaultFragment = jobsFragment;
+                        title.setText("Jobs");
+                        break;
+                    case R.id.list:
+                        defaultFragment = new SelectedJobListFragment(jobsList);
+                        title.setText("List");
+                        break;
+                }
+                fragmentManager.beginTransaction().replace(R.id.frame, defaultFragment, null).commit();
+                return true;
             }
         });
+
     }
     public void searchJobs(String key){
         jobsList=new HashSet<>();
