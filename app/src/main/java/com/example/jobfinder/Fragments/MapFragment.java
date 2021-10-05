@@ -58,7 +58,6 @@ public class MapFragment extends Fragment {
             @Override
             public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
                 getMyLocation();
-
             }
 
             @Override
